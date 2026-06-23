@@ -1,0 +1,18 @@
+# Window command line               # MacOS and Linux
+
+## current directory
+>> cd                               >> pwd
+
+## contents of directory 
+>> dir                              >> ls 
+
+## change directory 
+>> cd <directory>                   >> cd <directory>
+
+## go up 
+>> cd ..                            >> cd ..
+                                    
+                                    ## clear the screen
+                                    >> clear 
+## shortcut -TAB for auto complete 
+

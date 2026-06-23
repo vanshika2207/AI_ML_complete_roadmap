@@ -1,0 +1,13 @@
+1990 -> Guido Van Rossum
+2008 -> Python 3
+
+designed to keep readibilty in mind , easy to use 
+easy to read and learn
+lots of libraries and framework
+focus on saving developer time
+automate simple tasks
+
+# text editors - sublime and atom 
+# full ide's - pycharm and spyder 
+# notebook environment - .ipynb 
+ 
