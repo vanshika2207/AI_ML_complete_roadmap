@@ -7,7 +7,12 @@ lots of libraries and framework
 focus on saving developer time
 automate simple tasks
 
-# text editors - sublime and atom 
+# text editors - sublime and atom --->python 1_hello_world.py in cmd 
 # full ide's - pycharm and spyder 
 # notebook environment - .ipynb 
- 
+
+
+## In CMD 
+# start - python
+# quit - quit()
+
