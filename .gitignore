@@ -12,6 +12,9 @@ ENV/
 # Jupyter Notebook
 .ipynb_checkpoints/
 
+# Anaconda Projects
+anaconda_projects/
+
 # Python packaging
 dist/
 build/
