@@ -1,34 +1,31 @@
 # AI & ML Complete Roadmap 🚀
 
-This repository documents my learning journey and hands-on practice in Artificial Intelligence and Machine Learning.
+My hands-on learning repository for Artificial Intelligence and Machine Learning.
 
-It contains code implementations, exercises, notes, experiments, and projects covering foundational concepts to advanced topics in AI/ML.
+This repository contains implementations, coding exercises, experiments, notes, and projects as I explore AI/ML concepts from fundamentals to advanced topics.
 
-## 📚 Topics Covered
+## 📂 Repository Structure
 
-- Python Programming
-- Mathematics for Machine Learning
-- Data Analysis & Visualization
-- Machine Learning
-- Deep Learning
-- Natural Language Processing (NLP)
-- Generative AI & Large Language Models
-- MLOps & Model Deployment
-- AI/ML Projects
+- **Python** – Core Python, OOP, NumPy, Pandas
+- **Mathematics** – Linear Algebra, Probability, Statistics
+- **Data Analysis** – Data cleaning, EDA, visualization
+- **Machine Learning** – Algorithms, model training, evaluation
+- **Deep Learning** – Neural networks and deep learning architectures
+- **NLP** – Text processing, embeddings, language models
+- **Generative AI** – LLMs, RAG, prompt engineering, AI agents
+- **MLOps** – APIs, deployment, Docker, model lifecycle
+- **Projects** – End-to-end AI/ML projects
+- **Coding Exercises** – Problem-solving and practice
+- **Resources** – Learning materials and references
 
-## 🎯 Purpose
+## 🛠️ Technologies
 
-- Strengthen theoretical foundations through practical implementation.
-- Practice coding and problem-solving.
-- Implement ML algorithms from scratch and using libraries.
-- Explore modern AI and Generative AI technologies.
-- Build projects and maintain a collection of learning resources and implementations.
+Python · NumPy · Pandas · Matplotlib · Scikit-learn · PyTorch · TensorFlow · FastAPI
 
-## 🛠️ Tech Stack
+## 🎯 Objective
 
-Python | NumPy | Pandas | Matplotlib | Scikit-learn | PyTorch | TensorFlow | FastAPI
+Learn by implementing, experiment with different approaches, strengthen fundamentals, and build practical AI/ML skills.
 
 ---
 
-**Learning, experimenting, implementing, and building — one concept at a time.**
-
+*Learning by coding, experimenting, and building.*
