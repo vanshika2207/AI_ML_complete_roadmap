@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Python packaging
+dist/
+build/
+*.egg-info/
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Machine Learning artifacts
+*.pkl
+*.pickle
+*.joblib
+
+# Model weights (large files)
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.keras
+*.onnx
+
+
+# Local outputs
+outputs/
+results/
+runs/
+wandb/
+
+# TensorFlow
+logs/
+
+# PyTorch
+lightning_logs/
