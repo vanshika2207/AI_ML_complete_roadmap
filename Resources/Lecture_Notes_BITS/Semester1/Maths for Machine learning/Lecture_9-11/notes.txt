@@ -1,0 +1,605 @@
+Q1. What is differential curvature?
+
+Differential curvature occurs when the objective function has different curvature in different directions, causing gradients to have very different magnitudes and slowing gradient descent.
+
+Q2. Why is L=x
+2
++y
+2
+ easier to optimize than L=x
+2
++4y
+2
+?
+
+Because the first function has equal curvature in all directions, so the gradient points directly toward the minimum. The second has unequal curvature, leading to oscillations and slower convergence.
+
+Q3. Why is the gradient perpendicular to contour lines?
+
+Along a contour line, the function value is constant, so there is no change in the direction of the contour. Therefore, the direction of maximum increase (the gradient) must be perpendicular to the contour.
+
+Q4. Why does gradient descent zig-zag?
+
+Because one direction has much larger gradients than the other. The optimizer repeatedly overshoots in the high-curvature direction while making only small progress in the low-curvature direction.
+
+Lecture 10: Optimization – Complete Exam Summary
+1. Optimization
+Definition
+
+Optimization is the process of finding model parameters that minimize the loss function.
+
+Objective:
+
+w
+min
+	​
+
+J(w)
+	​
+
+
+where
+
+w = model parameters
+J(w) = loss function
+Goal of Gradient Descent
+
+Update parameters repeatedly until the loss is minimum.
+
+Update equation
+
+w
+new
+	​
+
+=w−α∇J(w)
+	​
+
+
+where
+
+α = learning rate
+∇J(w) = gradient
+2. Importance of Gradient
+
+Gradient tells
+
+Which direction increases the loss fastest.
+
+Therefore,
+
+Gradient Descent moves in the opposite direction.
+
+If gradient is computed incorrectly
+
+↓
+
+Wrong direction
+
+↓
+
+Wrong solution.
+
+The lecture emphasizes that correct gradient computation is essential for successful optimization.
+
+3. Initialization
+
+Gradient Descent requires an initial point.
+
+Common initialization
+
+Random values in
+[−1,1]
+If parameters are non-negative
+[0,1]
+
+Bad initialization may
+
+converge slowly
+get stuck in poor solutions
+cause overflow/underflow.
+4. Loss Function
+
+Most ML models minimize prediction error.
+
+Least Squares Loss
+
+J(w)=
+i=1
+∑
+n
+	​
+
+(w
+T
+X
+i
+	​
+
+−y
+i
+	​
+
+)
+2
+	​
+
+
+where
+
+X
+i
+	​
+
+ = input
+y
+i
+	​
+
+ = actual value
+w
+T
+X
+i
+	​
+
+ = predicted value.
+5. Overfitting
+Definition
+
+A model that performs well on training data
+
+but poorly on test data.
+
+Training Error
+
+↓
+
+Very Low
+
+Test Error
+
+↓
+
+High
+
+Why Overfitting Happens
+
+If
+
+Number of parameters
+
+Number of training examples
+
+Many weight combinations fit the training data perfectly.
+
+Example from the lecture:
+
+Good solution:
+
+w
+1
+	​
+
+=1,w
+2
+	​
+
+=w
+3
+	​
+
+=w
+4
+	​
+
+=0,w
+5
+	​
+
+=0
+
+captures the real relationship.
+
+Bad solution:
+
+w
+1
+	​
+
+=0,w
+2
+	​
+
+=7,w
+3
+	​
+
+=5,w
+4
+	​
+
+=0,w
+5
+	​
+
+=20
+
+achieves zero training error but does not reflect the true dependence on x
+1
+	​
+
+.
+
+6. Feature Processing
+
+Problem
+
+Different features have different ranges.
+
+Example
+
+Age
+
+0–100
+
+Education
+
+0–10
+
+Gradients become very different.
+
+Result
+
+oscillation
+slow convergence.
+
+The lecture uses this example to motivate scaling.
+
+7. Mean Centering
+
+Formula
+
+x
+′
+=x−μ
+	​
+
+
+where
+
+μ
+
+=
+
+Mean
+
+Purpose
+
+Shift data around zero.
+
+8. Standardization (Feature Normalization)
+
+Formula
+
+x
+′
+=
+σ
+x−μ
+	​
+
+	​
+
+
+where
+
+Mean = 0
+Standard deviation = 1
+
+Purpose
+
+Equalize feature variance.
+
+9. Min-Max Normalization
+
+Formula
+
+x
+′
+=
+max−min
+x−min
+	​
+
+	​
+
+
+Range
+
+0≤x
+′
+≤1
+
+The lecture lists all three preprocessing techniques.
+
+10. Local Minimum
+
+Definition
+
+Lowest point in a small neighborhood.
+
+Gradient
+
+=0
+
+Not necessarily the global best.
+
+11. Global Minimum
+
+Lowest point in the entire function.
+
+Desired solution.
+
+12. Local Maximum
+
+Highest point nearby.
+
+Gradient
+
+=0
+
+Second derivative
+
+Negative.
+
+The lecture illustrates these ideas using a one-dimensional function with two minima and one maximum.
+
+13. Why Gradient Descent Gets Stuck
+
+If it reaches
+
+Local Minimum
+
+↓
+
+Gradient becomes zero
+
+↓
+
+Algorithm stops
+
+even though
+
+Global minimum may exist.
+
+Starting point determines which minimum is reached.
+
+14. High Dimensional Optimization
+
+Suppose
+
+Each variable has
+
+2 local minima.
+
+Total minima
+
+2
+d
+
+where
+
+d
+
+=
+
+Number of dimensions.
+
+Therefore,
+
+Optimization becomes difficult as dimensions increase.
+
+15. Flat Regions
+
+Definition
+
+Region where
+
+Gradient
+
+≈
+
+0
+
+Problem
+
+Updates become extremely small.
+
+Result
+
+Very slow convergence.
+
+16. Curvature
+
+Curvature
+
+=
+
+Rate at which gradient changes.
+
+Measured using
+
+Second derivative.
+
+Large curvature
+
+↓
+
+Large gradient change.
+
+Moderate curvature in every direction makes optimization easier.
+
+17. Differential Curvature
+
+Example
+
+Easy function
+
+L=x
+2
++y
+2
+
+Hard function
+
+L=x
+2
++4y
+2
+
+Reason
+
+Second function has
+
+Higher curvature in y-direction.
+
+Gradient becomes unbalanced.
+
+18. Contour Plot
+
+Definition
+
+A contour line joins points having the
+
+Same loss value.
+
+Important property
+
+Gradient⊥Contour
+	​
+
+
+The gradient is perpendicular to contour lines because the function value does not change along a contour.
+
+19. Zig-Zag Problem
+
+Occurs when
+
+One direction has
+
+Large gradient
+
+Another direction has
+
+Small gradient.
+
+Result
+
+Gradient Descent oscillates
+
+instead of moving directly to the minimum.
+
+20. Why Feature Scaling Helps
+
+Scaling makes
+
+All features
+
+Similar magnitude.
+
+Result
+
+Similar gradients
+Less oscillation
+Faster convergence.
+
+The lecture concludes with the Guns–Butter–Happiness example showing that standardizing features reduces differential curvature.
+
+Important Formula Sheet
+Gradient Descent
+w=w−α∇J
+	​
+
+Least Squares Loss
+J(w)=∑(w
+T
+X−y)
+2
+	​
+
+Mean Centering
+x−μ
+	​
+
+Standardization
+σ
+x−μ
+	​
+
+	​
+
+Min-Max Normalization
+max−min
+x−min
+	​
+
+	​
+
+Frequently Asked Theory Questions
+Q1. Define Optimization.
+
+Finding parameter values that minimize the loss function.
+
+Q2. What is Gradient Descent?
+
+An iterative optimization algorithm that updates parameters in the direction opposite to the gradient to minimize the loss.
+
+Q3. What is Overfitting?
+
+Excellent training performance but poor test performance because the model memorizes the training data.
+
+Q4. Why is Feature Scaling Needed?
+
+To make feature magnitudes similar, reducing oscillation and improving convergence speed.
+
+Q5. Difference between Local and Global Minimum?
+Local Minimum	Global Minimum
+Lowest in nearby region	Lowest in entire function
+May not be optimal	Best possible solution
+Q6. What is Differential Curvature?
+
+Different directions of the loss surface have different curvature, causing uneven gradients and zig-zag motion.
+
+Q7. Why is Gradient Perpendicular to Contour Lines?
+
+Because moving along a contour does not change the function value, while the gradient points in the direction of maximum increase.
+
+Q8. Why does Gradient Descent Zig-Zag?
+
+Because one direction has much larger gradients than another, leading to repeated overshooting.
+
+Q9. What are Flat Regions?
+
+Areas where the gradient is close to zero, causing very slow updates.
+
+Q10. What are the methods of Feature Processing?
+Mean Centering
+Standardization
+Min-Max Normalization
+Last-Minute Revision (2-Minute Version)
+Optimization: Minimize the loss.
+Gradient Descent: w=w−α∇J.
+Initialization: Good starting points improve convergence.
+Loss Function: Measures prediction error.
+Overfitting: Low training error, high test error.
+Feature Scaling: Speeds up gradient descent.
+Mean Centering: x−μ.
+Standardization: (x−μ)/σ.
+Min-Max: (x−min)/(max−min).
+Local Minimum: Best nearby point.
+Global Minimum: Best overall point.
+Flat Region: Tiny gradients → slow learning.
+Differential Curvature: Unequal curvature → zig-zag.
+Gradient: Always perpendicular to contour lines.
+Normalization: Reduces oscillation and improves convergence.

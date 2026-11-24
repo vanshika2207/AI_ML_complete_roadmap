@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0b1b3a">
+<title>Vector Spaces — Made Simple</title>
+<style>
+:root{
+  --bg:#070a18; --bg-2:#0d1428; --panel:#111a33; --panel-2:#162042;
+  --line:#1f2c52; --ink:#e9eefc; --ink-dim:#a9b3d0; --ink-mute:#7a85a8;
+  --accent:#6aa6ff; --accent-2:#8b5cf6; --gold:#f5b042;
+  --green:#3ddc97; --red:#ff6b8b; --pink:#ff8ab2; --teal:#3ee0d2;
+  --shadow:0 20px 60px rgba(0,0,0,.45); --radius:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.65;font-size:16px;overflow-x:hidden}
+body{background:
+  radial-gradient(1200px 600px at 80% -10%, rgba(106,166,255,.15), transparent 60%),
+  radial-gradient(900px 600px at -10% 30%, rgba(139,92,246,.15), transparent 60%),
+  radial-gradient(800px 500px at 50% 110%, rgba(245,176,66,.10), transparent 60%),
+  var(--bg);
+  min-height:100vh;
+}
+a{color:var(--accent);text-decoration:none}
+img{max-width:100%}
+
+/* =========== Native Math styling =========== */
+.m{font-family:"Cambria Math","Latin Modern Math","Times New Roman",Georgia,serif;font-style:italic}
+.m b, b.m, .vec{font-family:inherit;font-style:normal;font-weight:800}
+.set{font-family:"Cambria Math","Latin Modern Math",Georgia,serif;font-style:normal}
+.op{font-family:inherit;font-style:normal}
+.rr{font-family:"Cambria Math","Latin Modern Math",Georgia,serif;font-weight:600;font-style:normal}
+sup.s, sub.s{font-size:.72em}
+sup, sub{font-style:normal}
+/* matrix display — uses pseudo-elements for proper bracket rendering */
+.mat{
+  display:inline-block;position:relative;
+  padding:8px 14px;margin:6px 4px;
+  font-family:ui-monospace,Menlo,Consolas,monospace;
+  font-variant-numeric:tabular-nums;color:var(--ink);
+  vertical-align:middle;line-height:1.45;
+}
+.mat::before,.mat::after{
+  content:'';position:absolute;top:0;bottom:0;width:7px;
+  border:2px solid var(--ink);border-radius:2px;
+}
+.mat::before{left:0;border-right:none}
+.mat::after{right:0;border-left:none}
+.mat .grid{display:grid;gap:3px 14px;justify-items:end}
+.mat .grid > span{text-align:right;min-width:1.2em}
+.mat.small{font-size:.95em}
+.mat.tiny{font-size:.92em;padding:6px 12px;margin:4px 3px}
+.mat .br{display:none}
+.mat-row{display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px;justify-content:center}
+.mat-row .lbl{display:flex;flex-direction:column;align-items:center;gap:2px}
+.mat-row .lbl small{color:var(--ink-mute);font-size:12px}
+.fbox{display:inline-block;padding:2px 8px;background:#0a1126;border:1px solid var(--line);border-radius:8px;color:var(--ink);font-family:ui-monospace,Menlo,monospace;font-size:.92em}
+.eq{background:#0a1126;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0;overflow-x:auto;text-align:center}
+.eq.left{text-align:left}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;margin:0 2px;font-size:.95em}
+.frac .num{padding:0 4px}
+.frac .den{padding:0 4px;border-top:1.5px solid var(--ink)}
+
+/* ===== Top Nav ===== */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,10,24,.78);backdrop-filter:saturate(140%) blur(14px);-webkit-backdrop-filter:saturate(140%) blur(14px);border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1180px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 200deg, var(--accent), var(--accent-2), var(--gold), var(--accent));position:relative;flex:none;box-shadow:0 6px 18px rgba(106,166,255,.35)}
+.brand-mark::after{content:"v";position:absolute;inset:0;display:grid;place-items:center;font-family:"Times New Roman",serif;font-style:italic;font-weight:700;font-size:20px;color:#0a1130}
+.brand-text{display:flex;flex-direction:column;line-height:1.05}
+.brand-text small{color:var(--ink-mute);font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+.nav-toggle{display:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 12px;border-radius:10px;font-size:14px;cursor:pointer}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-links a{font-size:13px;color:var(--ink-dim);padding:7px 10px;border-radius:8px;border:1px solid transparent;transition:.2s}
+.nav-links a:hover{background:var(--panel);color:var(--ink);border-color:var(--line)}
+@media(max-width:880px){
+  .nav-toggle{display:inline-block}
+  .nav-links{position:absolute;top:100%;left:0;right:0;background:var(--bg-2);border-bottom:1px solid var(--line);flex-direction:column;gap:0;padding:10px 14px 16px;transform:translateY(-110%);transition:transform .25s ease}
+  .nav-links.open{transform:translateY(0)}
+  .nav-links a{padding:11px 8px;border-bottom:1px solid var(--line);border-radius:0}
+  .nav-links a:last-child{border-bottom:none}
+}
+
+/* ===== Hero ===== */
+.hero{max-width:1180px;margin:0 auto;padding:60px 22px 30px;display:grid;grid-template-columns:1.1fr 1fr;gap:38px;align-items:center}
+@media(max-width:880px){.hero{grid-template-columns:1fr;padding:36px 18px 10px}}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);background:rgba(245,176,66,.08);border:1px solid rgba(245,176,66,.28);padding:6px 12px;border-radius:999px}
+h1.title{font-size:clamp(34px,5.4vw,58px);line-height:1.05;margin:18px 0 12px;font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;letter-spacing:-.5px}
+h1.title em{font-style:italic;background:linear-gradient(120deg,var(--accent),var(--accent-2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{color:var(--ink-dim);font-size:clamp(15px,1.6vw,18px);max-width:60ch}
+.hero-cta{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;padding:11px 18px;border-radius:12px;font-weight:600;border:none;cursor:pointer;box-shadow:0 10px 30px rgba(106,166,255,.35);transition:transform .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);box-shadow:none}
+.hero-art{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero-art::before{content:"";position:absolute;inset:-1px;border-radius:24px;background:linear-gradient(135deg,rgba(106,166,255,.2),transparent 40%,rgba(139,92,246,.2));pointer-events:none}
+
+/* ===== Sections ===== */
+section{max-width:1180px;margin:0 auto;padding:46px 22px;scroll-margin-top:80px}
+@media(max-width:880px){section{padding:34px 18px}}
+.section-eyebrow{display:flex;align-items:center;gap:10px;color:var(--ink-mute);font-size:12px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:10px}
+.section-eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+h2.section-title{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-size:clamp(28px,3.8vw,42px);line-height:1.1;margin:0 0 14px}
+.section-sub{color:var(--ink-dim);max-width:75ch;font-size:clamp(15px,1.4vw,17px)}
+
+.grid{display:grid;gap:18px}
+.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:780px){.grid.two,.grid.three,.grid.four{grid-template-columns:1fr}}
+
+.card{background:linear-gradient(180deg,var(--panel),rgba(17,26,51,.6));border:1px solid var(--line);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:.25s}
+.card:hover{border-color:#2a3a6a;transform:translateY(-2px)}
+.card h3{margin:6px 0 8px;font-size:18px}
+.card p{margin:0;color:var(--ink-dim);font-size:14.5px}
+.card .icon{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:rgba(106,166,255,.12);color:var(--accent);font-weight:700;font-size:20px}
+
+.callout{border-left:3px solid var(--accent);padding:14px 16px;border-radius:12px;background:rgba(106,166,255,.08);margin:14px 0}
+.callout.gold{border-color:var(--gold);background:rgba(245,176,66,.08)}
+.callout.green{border-color:var(--green);background:rgba(61,220,151,.08)}
+.callout.purple{border-color:var(--accent-2);background:rgba(139,92,246,.10)}
+.callout.red{border-color:var(--red);background:rgba(255,107,139,.08)}
+.callout.teal{border-color:var(--teal);background:rgba(62,224,210,.08)}
+.callout-title{font-weight:700;margin-bottom:6px;color:var(--ink);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.callout.gold .callout-title{color:var(--gold)}
+.callout.green .callout-title{color:var(--green)}
+.callout.purple .callout-title{color:var(--accent-2)}
+.callout.red .callout-title{color:var(--red)}
+.callout.teal .callout-title{color:var(--teal)}
+
+.tile{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:14px;border:1px solid var(--line);background:linear-gradient(180deg,#101a36,#0d1530)}
+.tile-num{font-size:11px;color:var(--ink-mute);letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+.tile h4{margin:0;font-size:16px}
+.tile small{color:var(--ink-dim);font-size:13.5px;line-height:1.55}
+
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.pill{border:1px solid var(--line);background:var(--panel);color:var(--ink-dim);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s}
+.pill.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-color:transparent}
+.pill:hover{color:var(--ink)}
+
+.play{background:linear-gradient(180deg,#0e1731,#0a1228);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+.play-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.play-title h3{margin:0;font-size:17px}
+.canvas-wrap{background:#070d1f;border-radius:14px;border:1px solid var(--line);position:relative;aspect-ratio:1/1;overflow:hidden}
+@media(min-width:780px){.canvas-wrap.wide{aspect-ratio:16/10}}
+.controls{display:grid;gap:12px;margin-top:14px}
+.ctrl{display:flex;flex-direction:column;gap:6px}
+.ctrl-label{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-mute);letter-spacing:.06em;text-transform:uppercase}
+.ctrl-label b{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;height:5px;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:99px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:pointer}
+
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+th,td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--ink-mute);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+tr:last-child td{border-bottom:none}
+.tab-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
+
+.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.04em}
+.chip.green{background:rgba(61,220,151,.18);color:#79f0bb}
+.chip.red{background:rgba(255,107,139,.18);color:#ffa1b6}
+.chip.blue{background:rgba(106,166,255,.18);color:#9ec4ff}
+.chip.gold{background:rgba(245,176,66,.20);color:#ffd28a}
+
+.flow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:stretch;padding:14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#0d1530,#0a1126)}
+.flow .box{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1.25}
+.flow .arr{display:flex;align-items:center;justify-content:center;color:var(--ink-mute);font-weight:700}
+@media(max-width:880px){.flow{grid-template-columns:1fr}.flow .arr{transform:rotate(90deg)}}
+
+details{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 14px;margin:10px 0}
+details summary{cursor:pointer;font-weight:700;color:var(--ink)}
+details[open]{background:var(--panel-2)}
+details > *:not(summary){margin-top:10px}
+
+footer{padding:50px 22px;text-align:center;color:var(--ink-mute);font-size:13px;border-top:1px solid var(--line);margin-top:40px}
+
+.steps{display:flex;flex-direction:column;gap:10px}
+.step{display:flex;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.step-no{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;display:grid;place-items:center;font-weight:800;flex:none;font-size:13px}
+.step h5{margin:0 0 4px;font-size:15px}
+.step p{margin:0;color:var(--ink-dim);font-size:14px}
+
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+.dot-pulse{animation:pulse 2s infinite}
+
+.muted{color:var(--ink-mute)}
+.center{text-align:center}
+.mt-2{margin-top:18px}
+.mt-3{margin-top:26px}
+.fade-in{opacity:0;transform:translateY(10px);transition:opacity .6s ease, transform .6s ease}
+.fade-in.show{opacity:1;transform:translateY(0)}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--ink-dim);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:3px;border-radius:2px;display:inline-block}
+
+.verdict{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;font-weight:700;background:rgba(255,255,255,.04);border:1px solid var(--line);margin-top:10px}
+.verdict.ok{background:rgba(61,220,151,.10);border-color:rgba(61,220,151,.35);color:#79f0bb}
+.verdict.bad{background:rgba(255,107,139,.10);border-color:rgba(255,107,139,.30);color:#ffa1b6}
+
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.kv .k{color:var(--ink-mute);font-weight:600}
+.kv .v{color:var(--ink)}
+
+/* big number badge */
+.bignum{
+  font-family:"Iowan Old Style",Georgia,serif;
+  font-size:54px;line-height:1;font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+</style>
+</head>
+<body>
+
+<!-- ============== TOP NAV ============== -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text"><span>Vector Spaces</span><small>Made simple · Lecture 2</small></div>
+    </div>
+    <button class="nav-toggle" id="navToggle">Menu ▾</button>
+    <nav class="nav-links" id="navLinks">
+      <a href="#why">Why</a>
+      <a href="#groups">Groups</a>
+      <a href="#vspaces">Vector Spaces</a>
+      <a href="#subspaces">Subspaces</a>
+      <a href="#span">Span</a>
+      <a href="#independence">Independence</a>
+      <a href="#theorem">Recipes</a>
+      <a href="#basis">Basis</a>
+      <a href="#algo">Find Basis</a>
+      <a href="#cheat">Cheatsheet</a>
+      <a href="#practice">Practice</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ============== HERO ============== -->
+<header class="hero">
+  <div>
+    <span class="eyebrow">● The whole lecture in plain English</span>
+    <h1 class="title">Vector spaces, made <em>simple</em>.</h1>
+    <p class="lede">A vector space is just a place where you can <b>add two arrows</b> and <b>stretch any arrow</b> — and never fall off the map. That one idea is the stage for almost every algorithm in machine learning. Let's walk through it with pictures, not symbols.</p>
+    <div class="hero-cta">
+      <a class="btn" href="#why">Start with one picture →</a>
+      <a class="btn ghost" href="#cheat">Skip to cheatsheet</a>
+    </div>
+    <div class="legend mt-2">
+      <span><i style="background:var(--accent)"></i> add</span>
+      <span><i style="background:var(--gold)"></i> stretch</span>
+      <span><i style="background:var(--green)"></i> never fall off</span>
+    </div>
+  </div>
+  <div class="hero-art">
+    <svg id="heroSvg" viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+      <defs>
+        <linearGradient id="gridGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#162042"/><stop offset="100%" stop-color="#0a1126"/>
+        </linearGradient>
+        <marker id="head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <rect width="600" height="380" fill="url(#gridGrad)"/>
+      <g stroke="#1f2c52" stroke-width="0.7" opacity=".6"><g id="gridV"></g><g id="gridH"></g></g>
+      <line x1="0" y1="190" x2="600" y2="190" stroke="#3a4878" stroke-width="1.4"/>
+      <line x1="300" y1="0" x2="300" y2="380" stroke="#3a4878" stroke-width="1.4"/>
+      <g style="color:#6aa6ff"><line x1="300" y1="190" x2="430" y2="120" stroke="#6aa6ff" stroke-width="3" marker-end="url(#head)"/></g>
+      <g style="color:#f5b042"><line x1="300" y1="190" x2="240" y2="80"  stroke="#f5b042" stroke-width="3" marker-end="url(#head)"/></g>
+      <g style="color:#3ddc97"><line x1="300" y1="190" x2="370" y2="20"  stroke="#3ddc97" stroke-width="3" marker-end="url(#head)"/></g>
+      <line x1="430" y1="120" x2="370" y2="20" stroke="#3ddc97" stroke-dasharray="4 4" stroke-width="1.5" opacity=".6"/>
+      <line x1="240" y1="80" x2="370" y2="20" stroke="#3ddc97" stroke-dasharray="4 4" stroke-width="1.5" opacity=".6"/>
+      <text x="438" y="118" fill="#9ec4ff" font-family="Georgia" font-style="italic" font-size="16">u (add)</text>
+      <text x="208" y="76"  fill="#ffd28a" font-family="Georgia" font-style="italic" font-size="16">v (add)</text>
+      <text x="378" y="22"  fill="#73f0ba" font-family="Georgia" font-style="italic" font-size="16">u + v</text>
+      <circle cx="300" cy="190" r="4" fill="#fff"/>
+      <text x="306" y="208" fill="#7a85a8" font-size="12">origin</text>
+    </svg>
+    <p class="muted center" style="margin:10px 0 0;font-size:13px">Two arrows. Stack them tip-to-tail. Out pops a third arrow. <b>That's it.</b></p>
+  </div>
+</header>
+
+<script>
+(function(){
+  const v = document.getElementById('gridV');
+  const h = document.getElementById('gridH');
+  for(let x=20; x<600; x+=20){ const e=document.createElementNS('http://www.w3.org/2000/svg','line'); e.setAttribute('x1',x);e.setAttribute('x2',x);e.setAttribute('y1',0);e.setAttribute('y2',380); v.appendChild(e); }
+  for(let y=20; y<380; y+=20){ const e=document.createElementNS('http://www.w3.org/2000/svg','line'); e.setAttribute('y1',y);e.setAttribute('y2',y);e.setAttribute('x1',0);e.setAttribute('x2',600); h.appendChild(e); }
+})();
+</script>
+
+<!-- ============== JOURNEY ============== -->
+<section>
+  <div class="section-eyebrow"><span class="dot"></span> The whole story in one picture</div>
+  <h2 class="section-title">Seven ideas. One map.</h2>
+  <p class="section-sub">Here's the entire trip. We start with a <b>group</b> — a place where addition makes sense. Add stretching to get a <b>vector space</b>. Find the smallest set of arrows that can build everything. That's it.</p>
+  <div class="flow mt-2">
+    <div class="box" style="border-color:#3a528f;color:#9ec4ff">Group<br><span style="font-weight:400;color:var(--ink-mute);font-size:11px">addition rules</span></div>
+    <div class="arr">→</div>
+    <div class="box" style="border-color:#a16ed9;color:#c8a4f5">Vector Space<br><span style="font-weight:400;color:var(--ink-mute);font-size:11px">+ stretching</span></div>
+    <div class="arr">→</div>
+    <div class="box" style="border-color:#5e8af0;color:#aacaff">Subspace<br><span style="font-weight:400;color:var(--ink-mute);font-size:11px">a flat slice</span></div>
+    <div class="arr">→</div>
+    <div class="box" style="border-color:#3ddc97;color:#86eebd">Span<br><span style="font-weight:400;color:var(--ink-mute);font-size:11px">where you can reach</span></div>
+  </div>
+  <div class="flow" style="margin-top:8px">
+    <div class="box" style="border-color:#3ddc97;color:#86eebd">Independence<br><span style="font-weight:400;color:var(--ink-mute);font-size:11px">no waste</span></div>
+    <div class="arr">→</div>
+    <div class="box" style="border-color:#f5b042;color:#ffd28a">Basis<br><span style="font-weight:400;color:var(--ink-mute);font-size:11px">smallest toolkit</span></div>
+    <div class="arr">→</div>
+    <div class="box" style="border-color:#ff6b8b;color:#ffa1b6">Dimension<br><span style="font-weight:400;color:var(--ink-mute);font-size:11px">how big it is</span></div>
+    <div class="arr">→</div>
+    <div class="box" style="border-color:#3ee0d2;color:#9ff0e7">Find Basis<br><span style="font-weight:400;color:var(--ink-mute);font-size:11px">3-step recipe</span></div>
+  </div>
+</section>
+
+<!-- ============== WHY ============== -->
+<section id="why">
+  <div class="section-eyebrow"><span class="dot"></span> 1 · Why this matters</div>
+  <h2 class="section-title">Everything in ML is just a list of numbers.</h2>
+  <p class="section-sub">A photo. A word. A user. A whole neural network. Underneath, they are all just lists of numbers — what we call <b>vectors</b>. Once you understand the world these vectors live in, every ML algorithm starts to feel like a small geometric story.</p>
+
+  <h3 style="margin-top:26px">Things you already know — turned into vectors</h3>
+  <div class="grid four mt-2">
+    <div class="card">
+      <div class="icon">📷</div>
+      <h3>A color photo</h3>
+      <p>A 224×224 photo is just <b>150,528 numbers</b> stacked together. That is the entire image.</p>
+      <div class="kv mt-2"><span class="k">lives in</span><span class="v">ℝ<sup>224×224×3</sup></span></div>
+    </div>
+    <div class="card">
+      <div class="icon">📝</div>
+      <h3>A single word</h3>
+      <p>The word <i>"cat"</i> in a model like BERT becomes <b>768 numbers</b>. Each captures a tiny piece of meaning.</p>
+      <div class="kv mt-2"><span class="k">lives in</span><span class="v">ℝ<sup>768</sup></span></div>
+    </div>
+    <div class="card">
+      <div class="icon">🧠</div>
+      <h3>A neural network</h3>
+      <p>One layer's weights are an <b>m×n grid</b> of numbers. The whole network is one giant point in a giant space.</p>
+      <div class="kv mt-2"><span class="k">lives in</span><span class="v">ℝ<sup>m×n</sup></span></div>
+    </div>
+    <div class="card">
+      <div class="icon">🎬</div>
+      <h3>You, on Netflix</h3>
+      <p>Your taste is a <b>list of d numbers</b> — one per "hidden flavor" the system has learned about you.</p>
+      <div class="kv mt-2"><span class="k">lives in</span><span class="v">ℝ<sup>d</sup></span></div>
+    </div>
+  </div>
+
+  <div class="callout gold mt-3">
+    <div class="callout-title">One picture for the whole lecture</div>
+    A vector space is the <b>board game</b> ML plays on.<br>
+    <b>Group</b> = rules for adding pieces. &nbsp;<b>Vector space</b> = adding + stretching. &nbsp;<b>Subspace</b> = a valid region of the board. &nbsp;<b>Independence</b> = no wasted pieces. &nbsp;<b>Basis</b> = smallest set of pieces that can build everything. &nbsp;<b>Dimension</b> = how big the board really is.
+  </div>
+
+  <h3 style="margin-top:30px">The math symbols, in plain English</h3>
+  <p class="muted">Don't let the symbols scare you. Each one just describes the <b>shape</b> of a list of numbers.</p>
+  <div class="tab-wrap mt-2">
+    <table>
+      <thead><tr><th>Symbol</th><th>What it really means</th><th>Picture in your head</th></tr></thead>
+      <tbody>
+        <tr><td><b>ℝ</b></td><td>one number</td><td>a dot on a number line</td></tr>
+        <tr><td><b>ℝ<sup>n</sup></b></td><td>a list of <i>n</i> numbers</td><td>an arrow</td></tr>
+        <tr><td><b>ℝ<sup>m×n</sup></b></td><td>a grid of numbers</td><td>a spreadsheet</td></tr>
+        <tr><td><b>ℝ<sup>H×W×3</sup></b></td><td>3 stacked grids</td><td>a color photo</td></tr>
+        <tr><td><b>ℝ<sup>B×H×W×3</sup></b></td><td><i>B</i> photos in one box</td><td>a batch of photos</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted" style="margin-top:10px">Read <b>ℝ<sup>(shape)</sup></b> as <b>"every possible thing with this shape."</b> That's all.</p>
+</section>
+
+<!-- ============== GROUPS ============== -->
+<section id="groups">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--accent-2)"></span> 2 · Groups</div>
+  <h2 class="section-title">A "group" is just a place where adding behaves nicely.</h2>
+  <p class="section-sub">Before we can talk about a vector space, we need a tinier idea: a <b>group</b>. It's the bare minimum for "combining two things gives a sensible third thing." Just a set <b>G</b> and a way to combine any two elements (call it <b>⊗</b>).</p>
+
+  <h3 style="margin-top:24px">Four rules. That's all a group needs.</h3>
+  <div class="grid four mt-2">
+    <div class="tile">
+      <span class="tile-num">G1</span>
+      <h4>Closure — "stay inside"</h4>
+      <small>Combining two things from the set gives back something <b>still in the set</b>. You don't fall out.</small>
+      <span class="chip blue" style="align-self:flex-start">x + y is still in G</span>
+    </div>
+    <div class="tile">
+      <span class="tile-num">G2</span>
+      <h4>Associativity — "grouping doesn't matter"</h4>
+      <small>It doesn't matter how you bracket: (a ⊗ b) ⊗ c equals a ⊗ (b ⊗ c).</small>
+      <span class="chip blue" style="align-self:flex-start">(1+2)+3 = 1+(2+3)</span>
+    </div>
+    <div class="tile">
+      <span class="tile-num">G3</span>
+      <h4>Identity — "do-nothing element"</h4>
+      <small>There's a special element <i>e</i> that leaves things unchanged. For adding, it's <b>0</b>. For multiplying, it's <b>1</b>.</small>
+      <span class="chip blue" style="align-self:flex-start">x + 0 = x</span>
+    </div>
+    <div class="tile">
+      <span class="tile-num">G4</span>
+      <h4>Inverse — "undo button"</h4>
+      <small>Every element has a partner that <b>undoes</b> it, taking you back to <i>e</i>. For 5, the partner is −5.</small>
+      <span class="chip blue" style="align-self:flex-start">5 + (−5) = 0</span>
+    </div>
+  </div>
+  <div class="callout purple mt-3">
+    <div class="callout-title">Bonus rule: Abelian</div>
+    If order doesn't matter (a ⊗ b = b ⊗ a), the group is called <b>Abelian</b>. Plain addition is Abelian. Matrix multiplication is not.
+  </div>
+
+  <h3 style="margin-top:30px">Group, or not? Let's check five candidates.</h3>
+  <p class="muted">Tap each example. We'll run the four rules one by one and see who passes.</p>
+  <div class="pills" id="groupPills">
+    <button class="pill active" data-id="A">A · all whole numbers, +</button>
+    <button class="pill" data-id="B">B · counting numbers (≥ 0), +</button>
+    <button class="pill" data-id="C">C · whole numbers, ×</button>
+    <button class="pill" data-id="D">D · non-zero reals, ×</button>
+    <button class="pill" data-id="E">E · vectors, +</button>
+  </div>
+  <div class="play" id="groupPlay">
+    <div class="play-title"><h3 id="grpTitle">Whole numbers under addition</h3><span class="muted" id="grpSub">(ℤ, +)</span></div>
+    <div class="grid four mt-2">
+      <div class="tile" id="ax-cl"><span class="tile-num">G1 · Closure</span><h4>—</h4><small id="grp-cl">…</small></div>
+      <div class="tile" id="ax-as"><span class="tile-num">G2 · Associativity</span><h4>—</h4><small id="grp-as">…</small></div>
+      <div class="tile" id="ax-id"><span class="tile-num">G3 · Identity</span><h4>—</h4><small id="grp-id">…</small></div>
+      <div class="tile" id="ax-iv"><span class="tile-num">G4 · Inverse</span><h4>—</h4><small id="grp-iv">…</small></div>
+    </div>
+    <div class="verdict" id="grpVerdict">Verdict</div>
+  </div>
+
+  <div class="callout purple mt-3">
+    <div class="callout-title">Where this hides in ML</div>
+    Gradient descent does <b>w</b> ← <b>w</b> − η ∇L — that's just <b>repeated addition</b> in the group of weight vectors. Closure guarantees the new weights are still valid weights. Image rotations form a group too. Permutations of tokens form a group. Once you spot the group, you spot the symmetry.
+  </div>
+</section>
+
+<script>
+const groupData = {
+  A:{title:"All whole numbers, with addition", sub:"(ℤ, +) — that is, …, −2, −1, 0, 1, 2, …",
+     cl:[true,"Whole + whole = whole. You stay in ℤ."],
+     as:[true,"(2+3)+5 = 2+(3+5). Bracketing never matters."],
+     id:[true,"0 is the do-nothing element: x + 0 = x."],
+     iv:[true,"Every n has partner −n. So 5 + (−5) = 0."],
+     verdict:["ok","Abelian group ✓ — the friendliest example to keep in mind."]},
+  B:{title:"Counting numbers (zero or more), with addition", sub:"(ℕ₀, +) — that is, 0, 1, 2, 3, …",
+     cl:[true,"Counting + counting = counting."],
+     as:[true,"Same as for whole numbers."],
+     id:[true,"0 is still the identity."],
+     iv:[false,"How do you undo +5? You'd need −5, but negatives aren't in the set."],
+     verdict:["bad","Not a group — no inverses (no way to go back)."]},
+  C:{title:"All whole numbers, with multiplication", sub:"(ℤ, ·)",
+     cl:[true,"Whole × whole = whole."],
+     as:[true,"Multiplication is associative."],
+     id:[true,"1 leaves any number unchanged: x × 1 = x."],
+     iv:[false,"To undo ×2 you'd need ×½. But ½ isn't a whole number."],
+     verdict:["bad","Not a group — almost no one has an inverse."]},
+  D:{title:"All non-zero real numbers, with multiplication", sub:"(ℝ\\{0}, ·)",
+     cl:[true,"Non-zero × non-zero = non-zero."],
+     as:[true,"Multiplication associates."],
+     id:[true,"1 is the identity."],
+     iv:[true,"Each x has partner 1/x, and x · (1/x) = 1. We removed 0 so this works."],
+     verdict:["ok","Abelian group ✓ — that's why we excluded 0 (you can't divide by 0)."]},
+  E:{title:"All vectors of fixed size, with vector addition", sub:"(ℝⁿ, +) — the king of ML examples",
+     cl:[true,"Vector + vector = same-shape vector."],
+     as:[true,"Inherits from entry-by-entry addition."],
+     id:[true,"The all-zeros vector 0 does nothing."],
+     iv:[true,"Each x has partner −x. So x + (−x) = 0."],
+     verdict:["ok","Abelian group ✓ — gradients, embeddings, weights all live here."]}
+};
+
+function renderGroup(id){
+  const d = groupData[id];
+  document.getElementById('grpTitle').textContent = d.title;
+  document.getElementById('grpSub').textContent = d.sub;
+  const set = (k, val)=>{
+    const root = document.getElementById('ax-'+k);
+    root.querySelector('h4').innerHTML = val[0] ? '✓ <span class="chip green">passes</span>' : '✗ <span class="chip red">fails</span>';
+    root.querySelector('small').textContent = val[1];
+  };
+  set('cl',d.cl); set('as',d.as); set('id',d.id); set('iv',d.iv);
+  const v = document.getElementById('grpVerdict');
+  v.className = 'verdict ' + d.verdict[0];
+  v.textContent = d.verdict[1];
+}
+document.querySelectorAll('#groupPills .pill').forEach(p=>{
+  p.addEventListener('click',()=>{
+    document.querySelectorAll('#groupPills .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    renderGroup(p.dataset.id);
+  });
+});
+renderGroup('A');
+</script>
+
+<!-- ============== VECTOR SPACES ============== -->
+<section id="vspaces">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--gold)"></span> 3 · Vector Spaces</div>
+  <h2 class="section-title">Group + stretching = vector space.</h2>
+  <p class="section-sub">A vector space is a group of vectors plus the ability to <b>stretch</b> any vector by a real number. It's a place where the two basic moves of linear algebra — <b>add</b> and <b>stretch</b> — always work and never throw you out.</p>
+
+  <div class="grid two mt-2">
+    <div class="card">
+      <div class="icon">➕</div>
+      <h3>Add (inner move)</h3>
+      <p>Take two vectors. Add them. The result is still a vector. <b>u + v</b> stays in the space.</p>
+    </div>
+    <div class="card">
+      <div class="icon">✦</div>
+      <h3>Stretch (outer move)</h3>
+      <p>Take any vector. Multiply by a real number. <b>3u</b> or <b>−0.5u</b> — still a vector.</p>
+    </div>
+  </div>
+
+  <div class="callout mt-3">
+    <div class="callout-title">The four rules — in everyday English</div>
+    <b>V1.</b> The "add" move is an Abelian group: there's a zero, every vector has a negative, and order doesn't matter.<br>
+    <b>V2.</b> Stretching distributes over adding: λ(<b>u</b>+<b>v</b>) = λ<b>u</b> + λ<b>v</b>.<br>
+    <b>V3.</b> Stretches stack up: λ(ψ <b>x</b>) = (λψ) <b>x</b>.<br>
+    <b>V4.</b> Stretching by 1 changes nothing: 1 · <b>x</b> = <b>x</b>.
+  </div>
+
+  <h3 style="margin-top:30px">Playground · Add and stretch two arrows</h3>
+  <p class="muted">Move the sliders. Every <b>λ₁ u + λ₂ v</b> you can build lives inside the same flat plane. <b>That</b> is what "vector space" means.</p>
+  <div class="play">
+    <div class="canvas-wrap wide">
+      <svg id="vsCanvas" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block"></svg>
+    </div>
+    <div class="controls" style="grid-template-columns:1fr 1fr;gap:14px">
+      <div class="ctrl">
+        <span class="ctrl-label"><span style="color:#6aa6ff">λ₁ · stretch <b>u</b></span><b id="l1Out">1.0</b></span>
+        <input id="lam1" type="range" min="-2" max="2" step="0.05" value="1">
+      </div>
+      <div class="ctrl">
+        <span class="ctrl-label"><span style="color:#f5b042">λ₂ · stretch <b>v</b></span><b id="l2Out">1.0</b></span>
+        <input id="lam2" type="range" min="-2" max="2" step="0.05" value="1">
+      </div>
+    </div>
+    <p class="muted center" style="font-size:13px;margin-top:10px">λ₁ <b>u</b> + λ₂ <b>v</b> = <span id="lcOut" style="color:#3ddc97;font-weight:700">(green vector)</span></p>
+  </div>
+
+  <div class="callout red mt-3">
+    <div class="callout-title">Don't get attached to the word "vector"</div>
+    A "vector" doesn't have to be a column of numbers. A 4×4 matrix can be a vector. A polynomial can be a vector. Even a function can be a vector. Same rules — just different objects. As long as add and stretch behave nicely, you have a vector space.
+  </div>
+</section>
+
+<script>
+(function(){
+  const svg = document.getElementById('vsCanvas');
+  const W=800,H=500,cx=400,cy=250,scale=60;
+  const ns = "http://www.w3.org/2000/svg";
+  function el(t,a){ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; }
+  for(let x=cx%scale; x<W; x+=scale) svg.appendChild(el('line',{x1:x,x2:x,y1:0,y2:H,stroke:'#1a2547',"stroke-width":0.7}));
+  for(let y=cy%scale; y<H; y+=scale) svg.appendChild(el('line',{x1:0,x2:W,y1:y,y2:y,stroke:'#1a2547',"stroke-width":0.7}));
+  svg.appendChild(el('line',{x1:0,x2:W,y1:cy,y2:cy,stroke:'#3a4878',"stroke-width":1.4}));
+  svg.appendChild(el('line',{x1:cx,x2:cx,y1:0,y2:H,stroke:'#3a4878',"stroke-width":1.4}));
+  const defs = el('defs',{});
+  defs.innerHTML = `<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>`;
+  svg.appendChild(defs);
+
+  const u = [1.6, -1.2];
+  const v = [-1.2, -1.7];
+  let l1 = 1, l2 = 1;
+
+  const lU = el('line',{stroke:'#6aa6ff','stroke-width':2.5,'marker-end':'url(#ah)',style:'color:#6aa6ff'});
+  const lV = el('line',{stroke:'#f5b042','stroke-width':2.5,'marker-end':'url(#ah)',style:'color:#f5b042'});
+  const lSum = el('line',{stroke:'#3ddc97','stroke-width':3.5,'marker-end':'url(#ah)',style:'color:#3ddc97'});
+  const dashU = el('line',{stroke:'#6aa6ff','stroke-width':1.4,'stroke-dasharray':'5 6',opacity:.5});
+  const dashV = el('line',{stroke:'#f5b042','stroke-width':1.4,'stroke-dasharray':'5 6',opacity:.5});
+
+  svg.appendChild(dashU); svg.appendChild(dashV);
+  svg.appendChild(lU); svg.appendChild(lV); svg.appendChild(lSum);
+
+  const tU = el('text',{fill:'#9ec4ff','font-family':'Georgia','font-style':'italic','font-size':18}); tU.textContent='u'; svg.appendChild(tU);
+  const tV = el('text',{fill:'#ffd28a','font-family':'Georgia','font-style':'italic','font-size':18}); tV.textContent='v'; svg.appendChild(tV);
+  const tS = el('text',{fill:'#73f0ba','font-family':'Georgia','font-style':'italic','font-size':16}); tS.textContent='λ₁u + λ₂v'; svg.appendChild(tS);
+  svg.appendChild(el('circle',{cx:cx,cy:cy,r:4,fill:'#fff'}));
+
+  function tx(x){return cx + x*scale}
+  function ty(y){return cy - y*scale}
+  function set(line,x1,y1,x2,y2){line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',x2);line.setAttribute('y2',y2)}
+
+  function render(){
+    const ux=u[0]*l1, uy=u[1]*l1;
+    const vx=v[0]*l2, vy=v[1]*l2;
+    set(lU,cx,cy,tx(ux),ty(uy));
+    set(lV,cx,cy,tx(vx),ty(vy));
+    const sx = ux+vx, sy = uy+vy;
+    set(lSum,cx,cy,tx(sx),ty(sy));
+    set(dashU,tx(ux),ty(uy),tx(sx),ty(sy));
+    set(dashV,tx(vx),ty(vy),tx(sx),ty(sy));
+    tU.setAttribute('x',tx(ux)+8); tU.setAttribute('y',ty(uy)-4);
+    tV.setAttribute('x',tx(vx)-22); tV.setAttribute('y',ty(vy)-4);
+    tS.setAttribute('x',tx(sx)+10); tS.setAttribute('y',ty(sy)-6);
+    document.getElementById('l1Out').textContent = l1.toFixed(2);
+    document.getElementById('l2Out').textContent = l2.toFixed(2);
+    document.getElementById('lcOut').textContent = `(${(l1*u[0]+l2*v[0]).toFixed(2)}, ${(l1*u[1]+l2*v[1]).toFixed(2)})`;
+  }
+  document.getElementById('lam1').addEventListener('input',e=>{l1=+e.target.value;render()});
+  document.getElementById('lam2').addEventListener('input',e=>{l2=+e.target.value;render()});
+  render();
+})();
+</script>
+
+<!-- ============== SUBSPACES ============== -->
+<section id="subspaces">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--green)"></span> 4 · Subspaces</div>
+  <h2 class="section-title">A space hiding inside a bigger space.</h2>
+  <p class="section-sub">A <b>subspace</b> is a smaller vector space living inside a bigger one. Picture a flat sheet of paper sitting inside a 3-D room. The paper is its own little 2-D world, following the same rules as the room around it.</p>
+
+  <div class="callout green mt-2">
+    <div class="callout-title">The subspace test — only 3 things to check</div>
+    A subset <b>U</b> of a vector space <b>V</b> is a subspace if all three are true:<br>
+    <b>S1.</b> It contains the origin. <span class="muted">(Zero must be inside.)</span><br>
+    <b>S2.</b> Closed under <b>add</b>: pick any two things in U, add them, the result is still in U.<br>
+    <b>S3.</b> Closed under <b>stretch</b>: pick anything in U, multiply by any real number, still in U.<br>
+    Everything else (associativity, distributivity, …) is inherited automatically.
+  </div>
+
+  <h3 style="margin-top:26px">A visual gallery — subspace, or not?</h3>
+  <p class="muted">Pick a candidate. We'll run all three tests on it.</p>
+  <div class="pills" id="subPills">
+    <button class="pill active" data-id="A">y-axis</button>
+    <button class="pill" data-id="B">line x = 1</button>
+    <button class="pill" data-id="C">unit square</button>
+    <button class="pill" data-id="D">line through origin</button>
+    <button class="pill" data-id="E">first quadrant</button>
+  </div>
+  <div class="play">
+    <div class="canvas-wrap" style="aspect-ratio:1.6/1">
+      <svg id="subSvg" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block"></svg>
+    </div>
+    <div class="grid three mt-2">
+      <div class="tile" id="s1"><span class="tile-num">S1 · Origin</span><h4>—</h4><small id="s1t"></small></div>
+      <div class="tile" id="s2"><span class="tile-num">S2 · Add</span><h4>—</h4><small id="s2t"></small></div>
+      <div class="tile" id="s3"><span class="tile-num">S3 · Stretch</span><h4>—</h4><small id="s3t"></small></div>
+    </div>
+    <div class="verdict" id="subV"></div>
+  </div>
+
+  <div class="callout gold mt-3">
+    <div class="callout-title">The one-line rule</div>
+    In ℝ<sup>n</sup>, the only subspaces are <b>flat shapes that pass through 0</b>: lines through 0, planes through 0, the whole space, and just {<b>0</b>} itself. Anything curved, bounded, or shifted off the origin is <b>not</b> a subspace.
+  </div>
+
+  <h3 style="margin-top:30px">The most useful subspace in ML: the null space</h3>
+  <div class="callout">
+    <div class="callout-title">Null space — in plain English</div>
+    Take a matrix <b>A</b>. Feed it different inputs <b>x</b>. The <b>null space</b> is the set of all inputs that <b>A</b> flattens to zero.<br>
+    <span class="fbox" style="margin-top:6px;display:inline-block">null(A) = { x : A x = 0 }</span><br>
+    Think of it as "the directions <b>A</b> can't see." It always passes the subspace test.
+  </div>
+  <div class="callout purple">
+    <div class="callout-title">Where null spaces show up</div>
+    <b>Linear regression.</b> Any <b>w</b> in the null space of <b>X</b> doesn't change predictions — that's why we regularize when features are collinear.<br>
+    <b>PCA.</b> The directions you throw away form a subspace. The directions you keep form another.<br>
+    <b>Neural network pruning.</b> "Remove this weight" usually means "this direction is in the layer's effective null space — losing it costs nothing."
+  </div>
+</section>
+
+<script>
+const subData = {
+  A:{label:"y-axis", S1:[true,"(0, 0) is on the y-axis."], S2:[true,"Two y-axis points add to a y-axis point."], S3:[true,"Stretching a y-axis point stays on the y-axis."], v:["ok","Subspace ✓ — a line through 0."]},
+  B:{label:"line x=1", S1:[false,"(0, 0) is NOT on the line x = 1."], S2:[false,"(1, 2) + (1, 3) = (2, 5) — off the line."], S3:[false,"2 · (1, 3) = (2, 6) — off the line."], v:["bad","Not a subspace — doesn't even contain the origin."]},
+  C:{label:"unit square", S1:[true,"(0, 0) is inside the square."], S2:[false,"(0.8, 0) + (0.8, 0) = (1.6, 0) — outside."], S3:[false,"3 · (0.8, 0.4) = (2.4, 1.2) — outside."], v:["bad","Not a subspace — bounded sets escape under big stretches."]},
+  D:{label:"line thru origin", S1:[true,"The origin is on the line."], S2:[true,"Adding two points on the line stays on it."], S3:[true,"Stretching stays on the line."], v:["ok","Subspace ✓ — every line through 0 is a subspace."]},
+  E:{label:"first quadrant", S1:[true,"(0, 0) is on the boundary."], S2:[true,"Two points with x, y ≥ 0 stay ≥ 0."], S3:[false,"Multiply (2, 3) by −1 and you get (−2, −3) — outside."], v:["bad","Not a subspace — fails closure under negative stretching."]}
+};
+
+(function(){
+  const svg = document.getElementById('subSvg');
+  const ns="http://www.w3.org/2000/svg";
+  const W=800,H=500,cx=400,cy=250,sc=70;
+  function el(t,a,txt){const e=document.createElementNS(ns,t);for(const k in (a||{})) e.setAttribute(k,a[k]); if(txt) e.textContent=txt; return e;}
+  for(let x=cx%sc; x<W; x+=sc) svg.appendChild(el('line',{x1:x,x2:x,y1:0,y2:H,stroke:'#1a2547','stroke-width':0.7}));
+  for(let y=cy%sc; y<H; y+=sc) svg.appendChild(el('line',{x1:0,x2:W,y1:y,y2:y,stroke:'#1a2547','stroke-width':0.7}));
+  svg.appendChild(el('line',{x1:0,x2:W,y1:cy,y2:cy,stroke:'#3a4878','stroke-width':1.4}));
+  svg.appendChild(el('line',{x1:cx,x2:cx,y1:0,y2:H,stroke:'#3a4878','stroke-width':1.4}));
+  const layer = el('g',{}); svg.appendChild(layer);
+  svg.appendChild(el('circle',{cx:cx,cy:cy,r:4,fill:'#fff'}));
+  function clear(){ while(layer.firstChild) layer.removeChild(layer.firstChild); }
+
+  function draw(id){
+    clear();
+    const ok = (subData[id].v[0]==='ok');
+    const col = ok ? '#3ddc97' : '#ff6b8b';
+    if(id==='A'){
+      layer.appendChild(el('line',{x1:cx,x2:cx,y1:0,y2:H,stroke:col,'stroke-width':4}));
+      layer.appendChild(el('text',{x:cx+10,y:30,fill:col,'font-size':13,'font-style':'italic'},'y-axis'));
+    } else if(id==='B'){
+      layer.appendChild(el('line',{x1:cx+sc,x2:cx+sc,y1:0,y2:H,stroke:col,'stroke-width':4}));
+      layer.appendChild(el('text',{x:cx+sc+10,y:30,fill:col,'font-size':13,'font-style':'italic'},'x = 1'));
+    } else if(id==='C'){
+      layer.appendChild(el('rect',{x:cx-sc,y:cy-sc,width:sc*2,height:sc*2,fill:col,'fill-opacity':.18,stroke:col,'stroke-width':3}));
+      layer.appendChild(el('line',{x1:cx,y1:cy,x2:cx+sc*2.4,y2:cy-sc*1.2,stroke:'#ff6b8b','stroke-dasharray':'5 4','stroke-width':1.5}));
+      layer.appendChild(el('text',{x:cx+sc*2.4-90,y:cy-sc*1.2-8,fill:'#ffa1b6','font-size':12},'stretch ×3 → outside'));
+    } else if(id==='D'){
+      const m=0.6;
+      layer.appendChild(el('line',{x1:0,y1:cy+m*cx,x2:W,y2:cy-m*(W-cx),stroke:col,'stroke-width':4}));
+      layer.appendChild(el('text',{x:cx+200,y:cy-110,fill:col,'font-size':13,'font-style':'italic'},'any line thru 0'));
+    } else if(id==='E'){
+      layer.appendChild(el('rect',{x:cx,y:0,width:W-cx,height:cy,fill:col,'fill-opacity':.15,stroke:col,'stroke-width':2}));
+      layer.appendChild(el('line',{x1:cx+sc,y1:cy-sc,x2:cx-sc,y2:cy+sc,stroke:'#ff6b8b','stroke-dasharray':'5 4','stroke-width':1.6}));
+      layer.appendChild(el('text',{x:cx-sc-150,y:cy+sc+20,fill:'#ffa1b6','font-size':12},'×(−1) → leaves region'));
+    }
+  }
+
+  function render(id){
+    const d = subData[id];
+    draw(id);
+    function set(k){
+      const root = document.getElementById('s'+k);
+      const arr = d['S'+k];
+      root.querySelector('h4').innerHTML = arr[0] ? '✓ <span class="chip green">passes</span>' : '✗ <span class="chip red">fails</span>';
+      root.querySelector('small').textContent = arr[1];
+    }
+    set(1); set(2); set(3);
+    const v = document.getElementById('subV');
+    v.className = 'verdict ' + d.v[0];
+    v.textContent = d.v[1];
+  }
+
+  document.querySelectorAll('#subPills .pill').forEach(p=>{
+    p.addEventListener('click',()=>{
+      document.querySelectorAll('#subPills .pill').forEach(x=>x.classList.remove('active'));
+      p.classList.add('active');
+      render(p.dataset.id);
+    });
+  });
+  render('A');
+})();
+</script>
+
+<!-- ============== SPAN ============== -->
+<section id="span">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--teal)"></span> 5 · Linear Combinations &amp; Span</div>
+  <h2 class="section-title">"Where can I get to from here?"</h2>
+  <p class="section-sub">Pick a few arrows. Mix them with any weights — stretch each, then add them all up. The result is a <b>linear combination</b>. Every place you could possibly arrive at is the <b>span</b>.</p>
+
+  <div class="eq">
+    <span style="font-size:18px">v = λ₁ <b>x</b><sub>1</sub> + λ₂ <b>x</b><sub>2</sub> + … + λ<sub>k</sub> <b>x</b><sub>k</sub></span><br>
+    <span class="muted" style="font-size:13px">"a stretch of each arrow, all added up"</span>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Span — the transport-mode picture</div>
+    Imagine your arrows are <b>transport modes</b>: a train going north-east, a bus going south, a bike going east. The span is <b>every place you can possibly arrive at</b> by combining these modes. Walking backwards counts (that's a negative weight). And here's the kicker: <b>the span is always a subspace.</b>
+  </div>
+
+  <h3 style="margin-top:26px">Three pictures of span</h3>
+  <p class="muted">Try each. Notice how adding a redundant arrow <b>doesn't grow</b> what you can reach.</p>
+  <div class="pills" id="spanPills">
+    <button class="pill active" data-id="one">1 arrow → a line</button>
+    <button class="pill" data-id="two">2 different arrows → a plane</button>
+    <button class="pill" data-id="col">2 same-direction → still a line</button>
+  </div>
+  <div class="play">
+    <div class="canvas-wrap wide">
+      <svg id="spanSvg" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block"></svg>
+    </div>
+    <p class="muted center" id="spanCaption" style="margin-top:10px">One arrow. Stretch it any way you want — you stay on the line through the origin.</p>
+  </div>
+
+  <div class="callout purple mt-3">
+    <div class="callout-title">Span in ML</div>
+    <b>Word embeddings.</b> The span of <i>king, queen, man, woman</i> is a small "concept subspace" inside the giant embedding space. The famous <b>king − man + woman ≈ queen</b> trick lives entirely inside this span.<br>
+    <b>Linear regression.</b> Predictions ŷ = X<b>w</b> are vectors inside the <b>column space</b> of X — that's just the span of X's columns.<br>
+    <b>PCA.</b> Compressing data = projecting onto the span of the top few directions. Smaller span = more compression.
+  </div>
+</section>
+
+<script>
+(function(){
+  const svg = document.getElementById('spanSvg');
+  const ns="http://www.w3.org/2000/svg";
+  const W=800,H=500,cx=400,cy=250,sc=70;
+  function el(t,a,txt){const e=document.createElementNS(ns,t);for(const k in (a||{})) e.setAttribute(k,a[k]); if(txt) e.textContent=txt; return e;}
+  for(let x=cx%sc; x<W; x+=sc) svg.appendChild(el('line',{x1:x,x2:x,y1:0,y2:H,stroke:'#1a2547','stroke-width':0.7}));
+  for(let y=cy%sc; y<H; y+=sc) svg.appendChild(el('line',{x1:0,x2:W,y1:y,y2:y,stroke:'#1a2547','stroke-width':0.7}));
+  svg.appendChild(el('line',{x1:0,x2:W,y1:cy,y2:cy,stroke:'#3a4878','stroke-width':1.4}));
+  svg.appendChild(el('line',{x1:cx,x2:cx,y1:0,y2:H,stroke:'#3a4878','stroke-width':1.4}));
+  const defs=el('defs');defs.innerHTML=`<marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>`;svg.appendChild(defs);
+  const layer = el('g'); svg.appendChild(layer);
+  svg.appendChild(el('circle',{cx:cx,cy:cy,r:4,fill:'#fff'}));
+  function clear(){ while(layer.firstChild) layer.removeChild(layer.firstChild); }
+  function tx(x){return cx+x*sc} function ty(y){return cy-y*sc}
+  function vec(x,y,col,label){
+    const l=el('line',{x1:cx,y1:cy,x2:tx(x),y2:ty(y),stroke:col,'stroke-width':3.2,style:'color:'+col,'marker-end':'url(#ah2)'});
+    layer.appendChild(l);
+    if(label){const t=el('text',{x:tx(x)+8,y:ty(y)-6,fill:col,'font-style':'italic','font-family':'Georgia','font-size':16},label);layer.appendChild(t);}
+  }
+  function spanLine(x,y,col){
+    const t=8;
+    layer.appendChild(el('line',{x1:tx(-t*x),y1:ty(-t*y),x2:tx(t*x),y2:ty(t*y),stroke:col,'stroke-width':1.5,opacity:.35,'stroke-dasharray':'5 4'}));
+  }
+  function spanPlane(){
+    layer.appendChild(el('rect',{x:0,y:0,width:W,height:H,fill:'#3ddc97','fill-opacity':.06}));
+    layer.appendChild(el('text',{x:W-180,y:30,fill:'#73f0ba','font-size':13,'font-style':'italic'},'span = entire plane'));
+  }
+  function draw(id){
+    clear();
+    if(id==='one'){
+      spanLine(2,-1,'#3ddc97');
+      vec(2,-1,'#6aa6ff','x₁');
+      document.getElementById('spanCaption').textContent='One arrow. Stretch it any way you want — you stay on the line through the origin. Span = a line.';
+    } else if(id==='two'){
+      spanPlane();
+      vec(2.2,-0.6,'#6aa6ff','x₁');
+      vec(-0.4,-1.6,'#f5b042','x₂');
+      document.getElementById('spanCaption').textContent='Two arrows pointing in different directions. Mix them with all weights and you fill the entire plane. Span = a plane.';
+    } else if(id==='col'){
+      spanLine(2,-1,'#3ddc97');
+      vec(2,-1,'#6aa6ff','x₁');
+      vec(-1,0.5,'#f5b042','x₂ = −½ · x₁');
+      document.getElementById('spanCaption').textContent='Two arrows along the same line. The second adds nothing new. Span = still just the line.';
+    }
+  }
+  document.querySelectorAll('#spanPills .pill').forEach(p=>p.addEventListener('click',()=>{
+    document.querySelectorAll('#spanPills .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active'); draw(p.dataset.id);
+  }));
+  draw('one');
+})();
+</script>
+
+<!-- ============== INDEPENDENCE ============== -->
+<section id="independence">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--pink)"></span> 6 · Linear Independence</div>
+  <h2 class="section-title">Are any of my arrows redundant?</h2>
+  <p class="section-sub">If one arrow can be made by combining the others, it's <b>redundant</b>. The set is <b>linearly dependent</b>. If every arrow brings something the others can't replicate, the set is <b>linearly independent</b>.</p>
+
+  <div class="grid two">
+    <div class="callout green">
+      <div class="callout-title">Linearly independent</div>
+      The <b>only</b> way to make λ₁ <b>x</b><sub>1</sub> + … + λ<sub>k</sub> <b>x</b><sub>k</sub> = <b>0</b> is the boring way: every λ = 0. <i>Each arrow brings something new.</i>
+    </div>
+    <div class="callout red">
+      <div class="callout-title">Linearly dependent</div>
+      There exist weights, <b>not all zero</b>, that mix to <b>0</b>. <i>At least one arrow is redundant — you can rebuild it from the others.</i>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Three pictures of independence</h3>
+  <div class="play">
+    <div class="canvas-wrap wide">
+      <svg id="indSvg" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block"></svg>
+    </div>
+    <div class="pills" id="indPills" style="margin-top:14px">
+      <button class="pill active" data-id="ind">Independent</button>
+      <button class="pill" data-id="dup">Dependent — duplicate</button>
+      <button class="pill" data-id="cmb">Dependent — third is a mix</button>
+    </div>
+    <p class="muted center" id="indCaption" style="margin-top:6px">Two arrows in genuinely different directions. Neither is a stretched copy of the other → independent.</p>
+  </div>
+
+  <div class="callout gold mt-3">
+    <div class="callout-title">Two handy shortcuts</div>
+    • The zero vector <b>0</b> ruins independence instantly. If <b>0</b> is in your set, the set is automatically dependent.<br>
+    • For non-zero arrows: <b>dependent</b> means at least one is a mix of the others. <b>Independent</b> means no arrow can be reconstructed from the rest.
+  </div>
+
+  <h3 style="margin-top:30px">A no-guess test: Gaussian elimination</h3>
+  <div class="callout green">
+    <div class="callout-title">The recipe</div>
+    1. Stack the arrows as <b>columns</b> of a matrix <b>A</b>.<br>
+    2. Reduce <b>A</b> to row-echelon form (just usual row operations).<br>
+    3. Look at the columns:<br>
+    &nbsp;&nbsp;&nbsp;• <b>All columns have a pivot</b> ⇒ <span class="chip green">independent</span>.<br>
+    &nbsp;&nbsp;&nbsp;• <b>Some column has no pivot</b> ⇒ <span class="chip red">dependent</span>; that non-pivot column is a mix of the pivot columns to its left.
+  </div>
+
+  <h3 style="margin-top:24px">A small example, told step by step</h3>
+  <div class="play">
+    <div class="grid two">
+      <div>
+        <p>We're handed three arrows as columns of a matrix:</p>
+        <div class="eq">
+          <span class="mat"><span class="br"></span><span class="grid" style="grid-template-columns:repeat(3,auto)"><span>1</span><span>2</span><span>3</span><span>2</span><span>4</span><span>4</span></span><span class="br r"></span></span>
+        </div>
+        <p><b>Question:</b> are these three columns independent?</p>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="step-no">1</div><div><h5>Row-reduce</h5><p>Subtract 2 × (row 1) from row 2:
+          <br><span class="mat tiny" style="margin-top:6px"><span class="br"></span><span class="grid" style="grid-template-columns:repeat(3,auto)"><span>1</span><span>2</span><span>3</span><span>0</span><span>0</span><span>−2</span></span><span class="br r"></span></span></p></div></div>
+        <div class="step"><div class="step-no">2</div><div><h5>Look at the pivots</h5><p>Pivots in <b>column 1</b> and <b>column 3</b>. Column 2 has no pivot — it's redundant.</p></div></div>
+        <div class="step"><div class="step-no">3</div><div><h5>Name the redundancy</h5><p>Column 2 of A is (2, 4) — exactly <b>2 × column 1</b>. Caught it.</p></div></div>
+      </div>
+    </div>
+    <div class="verdict bad">Verdict: the three columns are linearly dependent.</div>
+  </div>
+
+  <div class="callout purple mt-3">
+    <div class="callout-title">Why ML practitioners chase independence</div>
+    Data scientists call this same idea <b>multicollinearity</b>. Two columns of your design matrix nearly proportional ⇒ the model has a "ghost direction" it can't pin down. Coefficients become unstable. Fixes: drop the redundant feature, regularize (ridge / L2), or use PCA to project onto a clean independent set. In deep learning, "filter redundancy" inside a CNN is the same idea — duplicate filters waste capacity.
+  </div>
+</section>
+
+<script>
+(function(){
+  const svg=document.getElementById('indSvg');
+  const ns="http://www.w3.org/2000/svg";
+  const W=800,H=500,cx=400,cy=250,sc=70;
+  function el(t,a,txt){const e=document.createElementNS(ns,t);for(const k in (a||{})) e.setAttribute(k,a[k]); if(txt) e.textContent=txt; return e;}
+  for(let x=cx%sc; x<W; x+=sc) svg.appendChild(el('line',{x1:x,x2:x,y1:0,y2:H,stroke:'#1a2547','stroke-width':0.7}));
+  for(let y=cy%sc; y<H; y+=sc) svg.appendChild(el('line',{x1:0,x2:W,y1:y,y2:y,stroke:'#1a2547','stroke-width':0.7}));
+  svg.appendChild(el('line',{x1:0,x2:W,y1:cy,y2:cy,stroke:'#3a4878','stroke-width':1.4}));
+  svg.appendChild(el('line',{x1:cx,x2:cx,y1:0,y2:H,stroke:'#3a4878','stroke-width':1.4}));
+  const defs=el('defs');defs.innerHTML=`<marker id="ah3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>`;svg.appendChild(defs);
+  const layer = el('g'); svg.appendChild(layer);
+  svg.appendChild(el('circle',{cx:cx,cy:cy,r:4,fill:'#fff'}));
+  function tx(x){return cx+x*sc} function ty(y){return cy-y*sc}
+  function vec(x,y,col,label){
+    const l=el('line',{x1:cx,y1:cy,x2:tx(x),y2:ty(y),stroke:col,'stroke-width':3.2,style:'color:'+col,'marker-end':'url(#ah3)'});
+    layer.appendChild(l);
+    if(label){layer.appendChild(el('text',{x:tx(x)+8,y:ty(y)-6,fill:col,'font-style':'italic','font-family':'Georgia','font-size':16},label));}
+  }
+  function clear(){while(layer.firstChild) layer.removeChild(layer.firstChild);}
+  function draw(id){
+    clear();
+    if(id==='ind'){
+      vec(2.2,-0.6,'#3ddc97','x₁');
+      vec(-0.4,-1.7,'#3ddc97','x₂');
+      document.getElementById('indCaption').textContent='Two arrows in genuinely different directions. Neither is a stretched copy of the other → independent.';
+    } else if(id==='dup'){
+      vec(2.2,-0.6,'#ff6b8b','x₁');
+      vec(2.2*1.7,-0.6*1.7,'#ff6b8b','x₂ = 1.7 · x₁');
+      document.getElementById('indCaption').textContent='The second arrow is just the first stretched. One is a copy of the other → dependent.';
+    } else if(id==='cmb'){
+      vec(2.2,-0.6,'#ff6b8b','x₁');
+      vec(-0.4,-1.7,'#ff6b8b','x₂');
+      vec(2.2*0.8 + (-0.4)*0.9, -0.6*0.8 + -1.7*0.9,'#ff6b8b','x₃ = 0.8·x₁ + 0.9·x₂');
+      document.getElementById('indCaption').textContent='Three arrows in 2-D. The third can be rebuilt from the first two → redundant. Dependent.';
+    }
+  }
+  document.querySelectorAll('#indPills .pill').forEach(p=>p.addEventListener('click',()=>{
+    document.querySelectorAll('#indPills .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active'); draw(p.dataset.id);
+  }));
+  draw('ind');
+})();
+</script>
+
+<!-- ============== THEOREM ============== -->
+<section id="theorem">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--accent-2)"></span> 7 · The "recipes" theorem</div>
+  <h2 class="section-title">When you build new arrows from old, what survives?</h2>
+  <p class="section-sub">Imagine you have <b>k trusted ingredients</b>: arrows <b>b</b><sub>1</sub>, <b>b</b><sub>2</sub>, …, <b>b</b><sub>k</sub> that are independent. You use them to cook <b>m new dishes</b> <b>x</b><sub>1</sub>, …, <b>x</b><sub>m</sub> — each one a recipe of how much of each ingredient to mix.</p>
+
+  <div class="eq">
+    <b>x</b><sub>j</sub> = λ<sub>1j</sub> <b>b</b><sub>1</sub> + λ<sub>2j</sub> <b>b</b><sub>2</sub> + … + λ<sub>kj</sub> <b>b</b><sub>k</sub><br>
+    <span class="muted" style="font-size:13px">"Dish j is built from these amounts of each ingredient."</span>
+  </div>
+
+  <p class="section-sub">Question: are the new dishes themselves independent, or did we accidentally cook the same dish twice?</p>
+
+  <div class="callout">
+    <div class="callout-title">The big result</div>
+    The new dishes <b>x</b><sub>1</sub>, …, <b>x</b><sub>m</sub> are independent <b>if and only if</b> their recipes (the lists of weights) are independent.<br>
+    <span class="muted" style="font-size:13px;margin-top:6px;display:inline-block">Once you trust the ingredients, checking dishes = checking recipes. We just translate the question into easier coordinates.</span>
+  </div>
+
+  <h3 style="margin-top:24px">The "too many dishes" rule</h3>
+  <div class="callout gold">
+    <div class="callout-title">Pigeonhole — guaranteed redundancy</div>
+    Each recipe is a list of k numbers — so all recipes live in ℝ<sup>k</sup>. If you cook <b>more dishes than ingredients</b> (m &gt; k), the recipes <b>must</b> have a hidden relation, and so must the dishes. <b>You can't have m &gt; k independent dishes from k ingredients.</b>
+  </div>
+
+  <h3 style="margin-top:24px">A worked example, told as a story</h3>
+  <p class="muted">Someone hands us 4 trusted ingredients <b>b</b><sub>1</sub>, <b>b</b><sub>2</sub>, <b>b</b><sub>3</sub>, <b>b</b><sub>4</sub>. We cook 4 dishes:</p>
+  <div class="eq left">
+    <b>x</b><sub>1</sub> = &nbsp;1·<b>b</b><sub>1</sub> − 2·<b>b</b><sub>2</sub> + 1·<b>b</b><sub>3</sub> − 1·<b>b</b><sub>4</sub><br>
+    <b>x</b><sub>2</sub> = −4·<b>b</b><sub>1</sub> − 2·<b>b</b><sub>2</sub> + 0·<b>b</b><sub>3</sub> + 4·<b>b</b><sub>4</sub><br>
+    <b>x</b><sub>3</sub> = &nbsp;2·<b>b</b><sub>1</sub> + 3·<b>b</b><sub>2</sub> − 1·<b>b</b><sub>3</sub> − 3·<b>b</b><sub>4</sub><br>
+    <b>x</b><sub>4</sub> = 17·<b>b</b><sub>1</sub> − 10·<b>b</b><sub>2</sub> + 11·<b>b</b><sub>3</sub> + 1·<b>b</b><sub>4</sub>
+  </div>
+  <div class="steps mt-2">
+    <div class="step"><div class="step-no">1</div><div><h5>Stack the recipes as columns</h5>
+      <p>Each column is one dish's recipe. Each row is the weight on one ingredient.</p>
+      <div class="eq center">
+        <span class="mat"><span class="br"></span><span class="grid" style="grid-template-columns:repeat(4,auto)">
+          <span>&nbsp;1</span><span>−4</span><span>&nbsp;2</span><span>17</span>
+          <span>−2</span><span>−2</span><span>&nbsp;3</span><span>−10</span>
+          <span>&nbsp;1</span><span>&nbsp;0</span><span>−1</span><span>11</span>
+          <span>−1</span><span>&nbsp;4</span><span>−3</span><span>&nbsp;1</span>
+        </span><span class="br r"></span></span>
+      </div>
+    </div></div>
+    <div class="step"><div class="step-no">2</div><div><h5>Row-reduce</h5>
+      <div class="eq center">
+        <span class="mat"><span class="br"></span><span class="grid" style="grid-template-columns:repeat(4,auto)">
+          <span>1</span><span>0</span><span>0</span><span>−7</span>
+          <span>0</span><span>1</span><span>0</span><span>−15</span>
+          <span>0</span><span>0</span><span>1</span><span>−18</span>
+          <span>0</span><span>0</span><span>0</span><span>0</span>
+        </span><span class="br r"></span></span>
+      </div>
+    </div></div>
+    <div class="step"><div class="step-no">3</div><div><h5>Read the pivots</h5>
+      <p>Pivots in columns 1, 2, 3. <b>Column 4 has no pivot.</b> The non-pivot column tells us the recipe-redundancy: the 4th recipe = 7 × first + 15 × second + 18 × third.</p></div></div>
+    <div class="step"><div class="step-no">4</div><div><h5>Translate back to dishes</h5>
+      <p>By the theorem, the same relation holds for the dishes:<br>
+      <b>7·x<sub>1</sub> + 15·x<sub>2</sub> + 18·x<sub>3</sub> − x<sub>4</sub> = 0</b></p>
+    </div></div>
+  </div>
+  <div class="verdict bad">The four dishes are linearly dependent — and we caught the exact redundancy.</div>
+
+  <div class="callout purple mt-3">
+    <div class="callout-title">Why this theorem matters in ML</div>
+    <b>Dimensionality reduction.</b> Once you pick a small basis (like principal components), every data point is just its recipe in ℝ<sup>k</sup>. ML on the recipes = ML on the originals.<br>
+    <b>Embedding analyses.</b> "Are 50 word vectors independent in a 32-dim space?" Answer is always no — pure dimension counting (50 &gt; 32).<br>
+    <b>Capacity arguments.</b> A neural net layer with k neurons can only produce activations in a k-dim subspace. Any m &gt; k outputs must satisfy a linear relation.
+  </div>
+</section>
+
+<!-- ============== BASIS & DIMENSION ============== -->
+<section id="basis">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--gold)"></span> 8 · Basis &amp; Dimension</div>
+  <h2 class="section-title">The smallest toolkit that builds everything.</h2>
+  <p class="section-sub"><b>Span</b> tells us what we can build. <b>Independence</b> tells us we're not wasting pieces. A <b>basis</b> is the perfect marriage: enough to reach everything, with nothing wasted.</p>
+
+  <div class="callout gold">
+    <div class="callout-title">The Goldilocks story</div>
+    You're at the origin of a flat 2-D map. You want to walk to <b>any</b> point on the map.<br>
+    🚫 Only <i>north</i>? You reach the y-axis but never go east. <b>Not enough.</b><br>
+    ✅ <i>North</i> + <i>east</i>? You can reach <b>anywhere</b>. Just right. <span class="chip green">basis</span><br>
+    ⚠️ <i>North</i> + <i>east</i> + <i>north-east</i>? Still reaches everything — but "north-east" is a mix of the others. Wasteful. <span class="chip gold">not minimal</span><br>
+    A basis = the just-right toolkit. Enough to reach everywhere, nothing wasted.
+  </div>
+
+  <h3 style="margin-top:26px">Four ways to spot a basis (all the same idea)</h3>
+  <div class="grid two">
+    <div class="tile"><span class="tile-num">Way 1</span><h4>Spans + independent</h4><small>It reaches everything <b>and</b> has no redundancy. The textbook one.</small></div>
+    <div class="tile"><span class="tile-num">Way 2</span><h4>Smallest toolkit</h4><small>Drop any one piece and you can no longer reach everything. Can't shrink it.</small></div>
+    <div class="tile"><span class="tile-num">Way 3</span><h4>Biggest toolkit</h4><small>Add any new piece and the set becomes redundant. Can't grow it.</small></div>
+    <div class="tile"><span class="tile-num">Way 4</span><h4>Unique GPS coordinates</h4><small>Every vector has <b>exactly one</b> recipe in this basis. Like a GPS for the space.</small></div>
+  </div>
+
+  <div class="callout red mt-3">
+    <div class="callout-title">Why a basis gives unique coordinates</div>
+    Suppose a vector <b>v</b> had <b>two</b> different recipes in a basis. Subtract the recipes — you get a non-trivial way to mix the basis to <b>0</b>. But basis vectors are independent, so that's impossible! Therefore the recipe must be unique. <i>"No two ways to be at the same place."</i>
+  </div>
+
+  <h3 style="margin-top:30px">A basis is <em>not</em> unique</h3>
+  <p class="muted">The same space ℝ<sup>3</sup> can be described by lots of different bases. Pick one — see the building blocks change.</p>
+  <div class="play">
+    <div class="canvas-wrap" style="aspect-ratio:1.6/1">
+      <svg id="basisSvg" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block"></svg>
+    </div>
+    <div class="pills" id="basisPills" style="margin-top:12px">
+      <button class="pill active" data-id="canon">Standard: e₁, e₂, e₃</button>
+      <button class="pill" data-id="tri">Triangular</button>
+      <button class="pill" data-id="rot">Rotated / generic</button>
+    </div>
+    <p class="muted center" id="basisCaption" style="margin-top:6px">The standard basis — the one we draw by default. e₁ = (1, 0, 0), e₂ = (0, 1, 0), e₃ = (0, 0, 1).</p>
+  </div>
+
+  <div class="callout purple mt-3">
+    <div class="callout-title">Why "different bases" is one of the most powerful ideas in ML</div>
+    <b>PCA</b> = "find a new basis for the data, ordered by variance."<br>
+    <b>Fourier transform</b> = "re-express a signal in the basis of sines and cosines."<br>
+    <b>Wavelets, ICA, autoencoders</b> = "find a basis where the data's structure becomes obvious."<br>
+    The data didn't change. The space didn't change. But with a smarter basis, the right algorithm becomes a one-liner.
+  </div>
+
+  <h3 style="margin-top:30px">Dimension</h3>
+  <div class="callout">
+    <div class="callout-title">In plain English</div>
+    Pick <b>any</b> basis of a vector space and count its arrows. Pick a <b>different</b> basis and count again. <b>You'll always get the same number.</b> That number is the <b>dimension</b> — the answer to "how many independent directions does this space really have?"
+    <ul style="margin:10px 0 0 18px;color:var(--ink-dim);font-size:14.5px;line-height:1.7">
+      <li>dim(ℝ<sup>n</sup>) = n.</li>
+      <li>dim(ℝ<sup>m×n</sup>) = m · n.</li>
+      <li>If U sits inside V, then dim(U) ≤ dim(V). Equal only if U = V.</li>
+    </ul>
+  </div>
+
+  <div class="callout red">
+    <div class="callout-title">Common confusion: components ≠ dimension</div>
+    Take the y-axis as a vector space. Each vector has <b>2 components</b> (x and y) — but the space is just a line, not a plane. So its dimension is <b>1</b>. <b>Components count the room. Dimension counts the actual freedom.</b>
+  </div>
+
+  <div class="callout gold">
+    <div class="callout-title">The manifold hypothesis (the ML punchline)</div>
+    A road on a 2-D map has only 1 dimension of freedom: "how far along the road." The room is 2-D; the road is 1-D. ML calls this <b>intrinsic dimensionality</b>. Real data — images, speech, text — tends to live on a low-dimensional surface inside a huge ambient space. Discovering that surface is most of representation learning.
+  </div>
+</section>
+
+<script>
+(function(){
+  const svg=document.getElementById('basisSvg');
+  const ns="http://www.w3.org/2000/svg";
+  const W=800,H=500,cx=400,cy=270;
+  function el(t,a,txt){const e=document.createElementNS(ns,t);for(const k in (a||{})) e.setAttribute(k,a[k]); if(txt) e.textContent=txt; return e;}
+  for(let i=-6;i<=6;i++){
+    svg.appendChild(el('line',{x1:cx-280, y1:cy+i*30+i*-15, x2:cx+280, y2:cy+i*30+i*-15, stroke:'#1a2547','stroke-width':0.6}));
+  }
+  const defs=el('defs');defs.innerHTML=`<marker id="ah4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>`;svg.appendChild(defs);
+  const layer = el('g'); svg.appendChild(layer);
+  svg.appendChild(el('circle',{cx:cx,cy:cy,r:4,fill:'#fff'}));
+  function P(x,y,z){ return [cx + x*70 + z*-35, cy - y*70 + z*-25]; }
+  function vec3(x,y,z,col,label){
+    const [px,py]=P(x,y,z);
+    layer.appendChild(el('line',{x1:cx,y1:cy,x2:px,y2:py,stroke:col,'stroke-width':3,style:'color:'+col,'marker-end':'url(#ah4)'}));
+    if(label){layer.appendChild(el('text',{x:px+8,y:py-6,fill:col,'font-style':'italic','font-family':'Georgia','font-size':16},label));}
+  }
+  function clear(){while(layer.firstChild) layer.removeChild(layer.firstChild);}
+  function draw(id){
+    clear();
+    if(id==='canon'){
+      vec3(2.2,0,0,'#6aa6ff','e₁');
+      vec3(0,2.2,0,'#f5b042','e₂');
+      vec3(0,0,2.2,'#3ddc97','e₃');
+      document.getElementById('basisCaption').textContent='The standard basis — the one we draw by default. e₁ = (1, 0, 0), e₂ = (0, 1, 0), e₃ = (0, 0, 1).';
+    } else if(id==='tri'){
+      vec3(2.2,0,0,'#6aa6ff','u₁');
+      vec3(2.2,2.2,0,'#f5b042','u₂');
+      vec3(2.2,2.2,2.2,'#3ddc97','u₃');
+      document.getElementById('basisCaption').textContent='Triangular basis: (1,0,0), (1,1,0), (1,1,1). Still spans all of ℝ³ — just from a different angle.';
+    } else if(id==='rot'){
+      vec3(1.8,0.6,0.5,'#6aa6ff','w₁');
+      vec3(-0.9,1.8,0.6,'#f5b042','w₂');
+      vec3(0.4,-0.6,2,'#3ddc97','w₃');
+      document.getElementById('basisCaption').textContent='Generic / rotated basis: any 3 independent arrows form a basis of ℝ³. Infinitely many to choose from.';
+    }
+  }
+  document.querySelectorAll('#basisPills .pill').forEach(p=>p.addEventListener('click',()=>{
+    document.querySelectorAll('#basisPills .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active'); draw(p.dataset.id);
+  }));
+  draw('canon');
+})();
+</script>
+
+<!-- ============== ALGORITHM ============== -->
+<section id="algo">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--teal)"></span> 9 · Finding a Basis</div>
+  <h2 class="section-title">Three steps. Always works.</h2>
+  <p class="section-sub">You're handed a bunch of arrows that span some space. How do you trim them down to a basis?</p>
+
+  <div class="callout green">
+    <div class="callout-title">The 3-step recipe</div>
+    1. Stack the arrows as <b>columns</b> of a matrix <b>A</b>.<br>
+    2. Reduce <b>A</b> to row-echelon form.<br>
+    3. The <b>original</b> arrows whose columns ended up with pivots form a basis.
+  </div>
+  <div class="callout red">
+    <div class="callout-title">Important nuance</div>
+    The basis is the <b>original</b> pivot columns of <b>A</b> — not the columns of the row-reduced matrix. Row reduction tells you <b>which</b> columns to keep, not <b>what they are</b>.
+  </div>
+
+  <h3 style="margin-top:24px">Worked example: a basis for a subspace of ℝ⁵</h3>
+  <p class="muted">We're handed 4 arrows, each a list of 5 numbers. They span some subspace U inside ℝ⁵. We don't know yet how big U is, or whether some of these are redundant.</p>
+
+  <div class="eq">
+    <div class="mat-row">
+      <div class="lbl"><span class="mat tiny"><span class="grid" style="grid-template-columns:auto"><span>1</span><span>2</span><span>−1</span><span>−1</span><span>−1</span></span></span><small><b>x</b><sub>1</sub></small></div>
+      <div class="lbl"><span class="mat tiny"><span class="grid" style="grid-template-columns:auto"><span>2</span><span>−1</span><span>1</span><span>2</span><span>−2</span></span></span><small><b>x</b><sub>2</sub></small></div>
+      <div class="lbl"><span class="mat tiny"><span class="grid" style="grid-template-columns:auto"><span>3</span><span>−4</span><span>3</span><span>5</span><span>−3</span></span></span><small><b>x</b><sub>3</sub></small></div>
+      <div class="lbl"><span class="mat tiny"><span class="grid" style="grid-template-columns:auto"><span>−1</span><span>8</span><span>−5</span><span>−6</span><span>1</span></span></span><small><b>x</b><sub>4</sub></small></div>
+    </div>
+  </div>
+
+  <div class="steps mt-2">
+    <div class="step"><div class="step-no">1</div><div><h5>Stack &amp; reduce</h5>
+      <p>Put them as columns of a 5×4 matrix and row-reduce. Result:</p>
+      <div class="eq">
+        <span class="mat"><span class="br"></span><span class="grid" style="grid-template-columns:repeat(4,auto)">
+          <span>1</span><span>0</span><span>−1</span><span>3</span>
+          <span>0</span><span>1</span><span>2</span><span>−2</span>
+          <span>0</span><span>0</span><span>0</span><span>0</span>
+          <span>0</span><span>0</span><span>0</span><span>0</span>
+          <span>0</span><span>0</span><span>0</span><span>0</span>
+        </span><span class="br r"></span></span>
+      </div>
+    </div></div>
+    <div class="step"><div class="step-no">2</div><div><h5>Spot the pivots</h5><p>Leading 1's sit in <b>columns 1 and 2</b>. Columns 3 and 4 have no pivots — those arrows are redundant copies in disguise.</p></div></div>
+    <div class="step"><div class="step-no">3</div><div><h5>Read off the redundancies</h5>
+      <p>Column 3 of rref says: <b>x₃ = −1·x₁ + 2·x₂</b>.<br>Column 4 of rref says: <b>x₄ = 3·x₁ − 2·x₂</b>.<br>So x₃ and x₄ are nothing more than mixes of x₁ and x₂.</p></div></div>
+  </div>
+  <div class="callout green mt-2">
+    <div class="callout-title">The result</div>
+    A basis of U is just <b>{x₁, x₂}</b>. So <b>dim(U) = 2</b>.<br>
+    <b>The picture:</b> U lives inside ℝ⁵ (a 5-D space) but is itself only <b>2-D</b> — a flat plane through the origin. Our 4 original arrows all lay on this plane. The plane needs only 2 directions to describe.
+  </div>
+
+  <div class="callout purple mt-3">
+    <div class="callout-title">Connection to model capacity</div>
+    The number of pivots is the <b>rank</b> of the matrix — the dimension of its column space.<br>
+    • For a feature matrix X, <b>rank(X)</b> tells you how many features are truly independent.<br>
+    • For a neural-net weight matrix W, <b>rank(W)</b> caps the "effective directions" the layer can express. <b>LoRA</b> and other low-rank tricks explicitly exploit this.<br>
+    • For a Jacobian J, <b>rank(J)</b> tells you how many input directions actually affect the output.
+  </div>
+</section>
+
+<!-- ============== CHEATSHEET ============== -->
+<section id="cheat">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--gold)"></span> 10 · Putting it all together</div>
+  <h2 class="section-title">The ML cheatsheet for this lecture.</h2>
+  <p class="section-sub">One-line meanings, plus where each idea shows up in real ML pipelines.</p>
+  <div class="tab-wrap mt-2">
+    <table>
+      <thead><tr><th>Concept</th><th>One-line meaning</th><th>Where it shows up in ML</th></tr></thead>
+      <tbody>
+        <tr><td><b>Vector space</b></td><td>A "world" closed under add and stretch</td><td>Inputs, outputs, weights, gradients all live here.</td></tr>
+        <tr><td><b>Subspace</b></td><td>A flat slice through 0</td><td>Column space, null space, low-rank manifolds, PCA subspace.</td></tr>
+        <tr><td><b>Span</b></td><td>Everything you can build by mixing</td><td>The hypothesis class for linear models.</td></tr>
+        <tr><td><b>Independence</b></td><td>No redundancy among arrows</td><td>Multicollinearity check, independent features.</td></tr>
+        <tr><td><b>Basis</b></td><td>Smallest spanning set</td><td>Coordinate system; PCA components, Fourier basis.</td></tr>
+        <tr><td><b>Dimension</b></td><td>Size of any basis</td><td>Intrinsic dimensionality of data; layer capacity.</td></tr>
+        <tr><td><b>Rank</b></td><td>Number of pivots</td><td>Rank of X, low-rank approx, LoRA, model capacity.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-top:30px">The four-question loop to run on every matrix in ML</h3>
+  <div class="grid two mt-2">
+    <div class="tile"><span class="tile-num">Q1</span><h4>What space does this live in?</h4><small>Column space? Null space? Embedding space?</small></div>
+    <div class="tile"><span class="tile-num">Q2</span><h4>Are these arrows independent or redundant?</h4><small>Collinear features? Duplicate filters?</small></div>
+    <div class="tile"><span class="tile-num">Q3</span><h4>What's the span / rank / null space?</h4><small>Capacity, expressiveness, blind spots.</small></div>
+    <div class="tile"><span class="tile-num">Q4</span><h4>Is there a smarter basis?</h4><small>PCA, Fourier, wavelets, learned embeddings.</small></div>
+  </div>
+</section>
+
+<!-- ============== PRACTICE ============== -->
+<section id="practice">
+  <div class="section-eyebrow"><span class="dot" style="background:var(--pink)"></span> 11 · Practice</div>
+  <h2 class="section-title">Five problems to lock it in.</h2>
+  <p class="section-sub">Try each in your head, then expand the solution.</p>
+
+  <details>
+    <summary>Problem 1 — Subspace test of ℝ³</summary>
+    <p>Which of the following are subspaces of ℝ³?</p>
+    <ul>
+      <li>(a) { (x, y, z) : x + y + z = 0 }</li>
+      <li>(b) { (x, y, z) : x + y + z = 1 }</li>
+      <li>(c) { (x, y, z) : x ≥ 0 }</li>
+      <li>(d) { (x, y, z) : x = 2y }</li>
+    </ul>
+    <p class="muted"><i>Hint: anything that fails closure under negative stretching, or doesn't contain 0, is out.</i></p>
+    <div class="callout green"><b>Answer.</b> (a) <b>Yes</b> — passes through 0, closed under add and stretch. (b) <b>No</b> — doesn't contain 0. (c) <b>No</b> — fails when you stretch by a negative number. (d) <b>Yes</b> — a plane through the origin.</div>
+  </details>
+
+  <details>
+    <summary>Problem 2 — Express as a linear combination</summary>
+    <p>Write <b>b</b> = (4, 3, 1, 2) as a linear combination of <b>v</b>₁, <b>v</b>₂, <b>v</b>₃, <b>v</b>₄.</p>
+    <p class="muted"><i>Hint: set up the augmented system [v₁ v₂ v₃ v₄ | b] and row-reduce. Read off the weights.</i></p>
+    <div class="callout">After row-reducing, the right-hand side gives you the weights λ₁, …, λ₄ directly. It's the same procedure as solving any A<b>x</b>=<b>b</b>.</div>
+  </details>
+
+  <details>
+    <summary>Problem 3 — Recipes theorem in action</summary>
+    <p>Let <b>b</b>₁, <b>b</b>₂, <b>b</b>₃ be linearly independent. Define <b>x</b>₁ = <b>b</b>₁+<b>b</b>₂, &nbsp;<b>x</b>₂ = <b>b</b>₂+<b>b</b>₃, &nbsp;<b>x</b>₃ = <b>b</b>₁+<b>b</b>₃. Are the new <b>x</b>'s independent?</p>
+    <div class="callout green"><b>Answer.</b> By the theorem, just check the recipes. They are (1, 1, 0), (0, 1, 1), (1, 0, 1) as columns. Stack and row-reduce: all three columns get pivots → the recipes are independent → <b>so are x₁, x₂, x₃.</b></div>
+  </details>
+
+  <details>
+    <summary>Problem 4 — Is it a basis?</summary>
+    <p>Is { (2, 3, 5), (5, 7, 9), (1, 11, 1) } a basis of ℝ³?</p>
+    <div class="callout green"><b>Answer.</b> Stack as columns and row-reduce. If all three columns have pivots, the set is independent. <b>Three independent arrows in a 3-D space are automatically a basis</b> (no need to check spanning separately — the dimension argument does it for free).</div>
+  </details>
+
+  <details>
+    <summary>Problem 5 — Find a basis</summary>
+    <p>Find a basis (and the dimension) of the subspace of ℝ⁴ spanned by (1,2,1,3), (2,4,2,6), (1,0,1,1), (3,2,3,5).</p>
+    <div class="callout green"><b>Answer.</b> Notice column 2 = 2 × column 1, and column 4 = column 1 + column 3 — both obvious from inspection. Row reduction confirms: only columns 1 and 3 are pivots. So a basis is <b>{ (1,2,1,3), (1,0,1,1) }</b> and the dimension is <b>2</b>.</div>
+  </details>
+</section>
+
+<footer>
+  <p>Vector spaces are the stage. Linear independence is the casting. A basis is the cast. The rest of ML is the play.</p>
+  <p class="muted">Adapted from <i>MFML / MFDS Lecture 2 — Vector Spaces</i> · BITS Pilani · WILPD–CSIS</p>
+</footer>
+
+<script>
+const tg = document.getElementById('navToggle');
+const lk = document.getElementById('navLinks');
+tg && tg.addEventListener('click',()=>lk.classList.toggle('open'));
+document.querySelectorAll('#navLinks a').forEach(a=>a.addEventListener('click',()=>lk.classList.remove('open')));
+
+const fadeEls = document.querySelectorAll('section, .card, .callout, .play, .tab-wrap, .flow');
+fadeEls.forEach(el=>el.classList.add('fade-in'));
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('show'); io.unobserve(e.target); } });
+},{threshold:.08});
+fadeEls.forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
